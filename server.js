@@ -1,43 +1,25 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const session = require('express-session');
 const app = express();
 const PORT = 4000;
 
+const usersController = require('./controllers/usersController');
+
+// Configuration / Middleware
 app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'milo the barking dog',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7 * 2
+  }
+}));
 
-/////////////////////////////////////////////////////////
-// AUTH ROUTES
-/////////////////////////////////////////////////////////
-app.get('/signup', (req, res) => {
-  res.render('auth/signup');
-});
-
-
-app.post('/signup', (req, res) => {
-  // add user to db
-
-  // redirect to accout page
-  res.send('User has signed up');
-});
-
-
-app.get('/login', (req, res) => {
-  res.render('auth/login');
-});
-
-
-app.post('/login', (req, res) => {
-  // get user from db
-
-  // redirect to account page
-  res.send('User has logged in');
-});
-
-/////////////////////////////////////////////////////////
-// USER ROUTES
-/////////////////////////////////////////////////////////
-app.get('/users/:id', (req, res) => {
-  res.render('users/accountPage');
-});
+// Controller
+app.use('/users', usersController);
 
 app.get('/', (req, res) => {
   res.render('home');
