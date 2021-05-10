@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const router = express.Router();
 const db = require('../models');
 
@@ -18,12 +19,33 @@ router.get('/signup', (req, res) => {
 router.post('/', (req, res) => {
   console.log(req.body);
 
-  db.User.create(req.body, (err, createdUser) => {
-    if (err) return console.log(err);
+  // If user already exists with that username
+  // redirect to signup form
+  db.User.findOne({ username: req.body.username }, (err, foundUser) => {
+    if (foundUser) {
+      return res.redirect('/users/signup');
+    }
 
-    res.redirect('/users/login');
-  });
+    bcrypt.genSalt(10, (err, salt) => {
+      if (err) return console.log(err);
 
+      bcrypt.hash(req.body.password, salt, (err, hashedPassword) => {
+        if (err) return console.log(err);
+
+        const newUser = {
+          username: req.body.username,
+          email: req.body.email,
+          password: hashedPassword
+        }
+        
+        db.User.create(newUser, (err, createdUser) => {
+          if (err) return console.log(err);
+      
+          res.redirect('/users/login');
+        });
+      });
+    })
+  })
 });
 
 
@@ -53,13 +75,24 @@ router.post('/login', (req, res) => {
 
     // If password from the form does not match password from DB
     // redirect to login
-    if (req.body.password !== foundUser.password) {
-      return res.redirect('/users/login?message="Password incorrect"');
-    }
+    // if (req.body.password !== foundUser.password) {
+    //   return res.redirect('/users/login?message="Password incorrect"');
+    // }
 
-    req.session.currentUser = foundUser;
+    bcrypt.compare(req.body.password, foundUser.password, (err, result) => {
+      if (err) return console.log(err);
 
-    res.redirect(`/users/${foundUser._id}`);
+      // If password was incorrect, redirect to login page
+      if (!result) {
+        return res.redirect('/users/login');
+      }
+
+      req.session.currentUser = foundUser;
+  
+      // Redirects to the account page
+      res.redirect(`/users/account-page`);
+    })
+
   });
 });
 
@@ -68,15 +101,24 @@ router.post('/login', (req, res) => {
 // HANDLES LOGGING OUT
 // /users/logout
 router.get('/logout', (req, res) => {
-  res.redirect('/');
+  req.session.destroy((err) => {
+    if (err) return console.log(err);
+
+    res.redirect('/');
+  });
 });
 
 
 ///////////////////////////////////////////////////////
 // SHOWS USER'S ACCOUNT PAGE
-// /users/:id
-router.get('/:id', (req, res) => {
-  db.User.findById(req.params.id, (err, foundUser) => {
+// /users/account-page
+router.get('/account-page', (req, res) => {
+  // If there is no user, redirect to home page
+  if (!req.session.currentUser) {
+    return res.redirect('/');
+  }
+
+  db.User.findById(req.session.currentUser._id, (err, foundUser) => {
     if (err) return console.log(err);
   
     res.render('users/accountPage', { currentUser: foundUser });

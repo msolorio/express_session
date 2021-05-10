@@ -18,6 +18,7 @@ app.use(session({
   resave: false, // Only store user one time when user logs in
   saveUninitialized: false, // Only store cookies for users that are logged in
   cookie: {
+    // secure: true // Only use with HTTPS, for demo we are using HTTP
     maxAge: 1000 * 60 * 60 * 24 * 2 // Cookie is valid for 2 days
   }
 }));
@@ -30,6 +31,12 @@ app.use('/users', usersController);
 /////////////////////////////////////////////////////////
 // ROUTES
 app.get('/items', (req, res) => {
+  // If user is not logged in
+  // redirect to home page
+  if (!req.session.currentUser) {
+    return res.redirect('/');
+  }
+
   console.log(req.session);
 
   res.render('items/browseItems');
@@ -38,6 +45,9 @@ app.get('/items', (req, res) => {
 
 app.get('/', (req, res) => {
   // console.log(req.session);
+  if (req.session.currentUser) {
+    return res.redirect('/users/account-page');
+  }
 
   res.render('home');
 });
