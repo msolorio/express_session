@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('./User');
 
-const connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/emart';
+const connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/gregslist';
 const mongooseOptions = {
   useNewUrlParser: true,
   useFindAndModify: false,
