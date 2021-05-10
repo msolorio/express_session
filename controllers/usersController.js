@@ -55,7 +55,7 @@ router.get('/:id', (req, res) => {
       currentUser: foundUser
     }
   
-    res.render('users/accountPage', context);
+    res.render('users/accountPage', { currentUser: foundUser });
   });
 });
 
