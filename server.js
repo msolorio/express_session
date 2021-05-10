@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const app = express();
 const PORT = 4000;
 const usersController = require('./controllers/usersController');
@@ -8,7 +7,7 @@ const usersController = require('./controllers/usersController');
 ////////////////////////////////////////////////////////
 // Configuration / Middleware
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.urlencoded({extended: true}));
 
 
 /////////////////////////////////////////////////////////
